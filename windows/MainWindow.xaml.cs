@@ -2,7 +2,7 @@ using System.Windows; using System.Windows.Controls; using Microsoft.Win32; usin
 namespace TVFongMi.Windows;
 public partial class MainWindow : Window
 {
- private readonly SourceCatalog _catalog=new(); private readonly SourceImporter _importer=new(); private readonly SourceHealthChecker _healthChecker=new(); private readonly BackupService _backup=new(); private readonly CatVodHttpClient _api=new(); private IReadOnlyList<VideoItem> _allVideos=Array.Empty<VideoItem>();
+ private readonly SourceCatalog _catalog=new(); private readonly SourceImporter _importer=new(); private readonly SourceHealthChecker _healthChecker=new(); private readonly BackupService _backup=new(); private readonly CatVodHttpClient _api=new(); private IReadOnlyList<VideoItem> _allVideos=Array.Empty<VideoItem>(); private string _category="";
  public MainWindow(){InitializeComponent();RefreshSources();}
  private void RefreshSources(){SourceList.ItemsSource=null;SourceList.ItemsSource=_catalog.Sources;StatusText.Text=_catalog.Sources.Count==0?"尚未导入影视源":$"已加载 {_catalog.Sources.Count} 个影视源";}
  private async void CheckSources_Click(object sender,RoutedEventArgs e){if(_catalog.Sources.Count==0){MessageBox.Show("请先导入影视源。","提示");return;}try{var r=await _healthChecker.CheckAllAsync(_catalog.Sources);MessageBox.Show($"可访问 {r.Count(x=>x.IsReachable)}/{r.Count} 个影视源。","检查完成");}catch(Exception ex){MessageBox.Show(ex.Message,"检查失败");}}
@@ -12,5 +12,6 @@ public partial class MainWindow : Window
  private async void ImportFile_Click(object sender,RoutedEventArgs e){var d=new OpenFileDialog{Filter="JSON 文件|*.json|所有文件|*.*"};if(d.ShowDialog()!=true)return;try{var r=_catalog.Merge(await _importer.ImportFromFileAsync(d.FileName));RefreshSources();MessageBox.Show($"导入 {r.ImportedCount} 个影视源。","导入完成");}catch(Exception ex){MessageBox.Show(ex.Message,"导入失败");}}
  private async void SourceList_SelectionChanged(object sender, SelectionChangedEventArgs e){if(SourceList.SelectedItem is not SourceConfig source)return;try{StatusText.Text=$"正在加载：{source.Name}";using var json=await _api.GetJsonAsync(source.Url);_allVideos=CatVodHttpClient.ReadVideoItems(json.RootElement);ApplySearch();StatusText.Text=$"{source.Name}：已加载 {_allVideos.Count} 个视频";}catch(Exception ex){StatusText.Text=$"加载失败：{ex.Message}";}}
  private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)=>ApplySearch();
- private void ApplySearch(){var keyword=SearchBox?.Text?.Trim();VideoList.ItemsSource=string.IsNullOrWhiteSpace(keyword)?_allVideos:_allVideos.Where(x=>x.Name.Contains(keyword,StringComparison.OrdinalIgnoreCase)||x.Remark.Contains(keyword,StringComparison.OrdinalIgnoreCase)).ToList();}
+ private void Category_SelectionChanged(object sender, SelectionChangedEventArgs e){if(sender is ListBox list && list.SelectedItem is ListBoxItem item)_category=item.Tag as string ?? "";ApplySearch();}
+ private void ApplySearch(){var keyword=SearchBox?.Text?.Trim();IEnumerable<VideoItem> items=_allVideos;if(!string.IsNullOrWhiteSpace(_category))items=items.Where(x=>(x.Category??"").Contains(_category,StringComparison.OrdinalIgnoreCase));if(!string.IsNullOrWhiteSpace(keyword))items=items.Where(x=>x.Name.Contains(keyword,StringComparison.OrdinalIgnoreCase)||(x.Remark??"").Contains(keyword,StringComparison.OrdinalIgnoreCase));VideoList.ItemsSource=items.ToList();}
 }

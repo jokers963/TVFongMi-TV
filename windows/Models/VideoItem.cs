@@ -7,4 +7,5 @@ public sealed class VideoItem
     public string? Poster { get; init; }
     public string? Year { get; init; }
     public string? Remark { get; init; }
+    public string? Category { get; init; }
 }
