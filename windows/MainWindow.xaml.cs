@@ -14,4 +14,5 @@ public partial class MainWindow : Window
  private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)=>ApplySearch();
  private void Category_SelectionChanged(object sender, SelectionChangedEventArgs e){if(sender is ListBox list && list.SelectedItem is ListBoxItem item)_category=item.Tag as string ?? "";ApplySearch();}
  private void ApplySearch(){var keyword=SearchBox?.Text?.Trim();IEnumerable<VideoItem> items=_allVideos;if(!string.IsNullOrWhiteSpace(_category))items=items.Where(x=>(x.Category??"").Contains(_category,StringComparison.OrdinalIgnoreCase));if(!string.IsNullOrWhiteSpace(keyword))items=items.Where(x=>x.Name.Contains(keyword,StringComparison.OrdinalIgnoreCase)||(x.Remark??"").Contains(keyword,StringComparison.OrdinalIgnoreCase));VideoList.ItemsSource=items.ToList();}
+ private void VideoCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e){if(sender is FrameworkElement { DataContext: VideoItem video })MessageBox.Show($"{video.Name}\n\n类型：{video.Category ?? "未知"}\n年份：{video.Year ?? "未知"}\n备注：{video.Remark ?? "暂无"}","影片详情");}
 }
