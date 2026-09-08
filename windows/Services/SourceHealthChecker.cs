@@ -1,3 +1,4 @@
+using System.Net.Http;
 using TVFongMi.Windows.Models;
 namespace TVFongMi.Windows.Services;
 public sealed record SourceHealthResult(string Name, string Url, bool IsReachable, string? Error, TimeSpan? Elapsed);
