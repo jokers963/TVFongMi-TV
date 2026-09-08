@@ -12,7 +12,7 @@ public sealed class MpvPlayerBackend : IPlayerBackend
         info.ArgumentList.Add(uri.ToString());
         if (!string.IsNullOrWhiteSpace(request.Title)) { info.ArgumentList.Add("--force-media-title"); info.ArgumentList.Add(request.Title); }
         foreach (var header in request.Headers) { info.ArgumentList.Add("--http-header-fields=" + header.Key + ": " + header.Value); }
-        Process.Start(info) ?? throw new InvalidOperationException("无法启动 mpv。");
+        _ = Process.Start(info) ?? throw new InvalidOperationException("无法启动 mpv。");
         return Task.CompletedTask;
     }
 }
