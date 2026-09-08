@@ -1,0 +1,11 @@
+{
+  "sites": [
+    {
+      "key": "demo",
+      "name": "示例站点",
+      "api": "https://example.com/api.php/provide/vod",
+      "type": "影视",
+      "searchable": true
+    }
+  ]
+}
