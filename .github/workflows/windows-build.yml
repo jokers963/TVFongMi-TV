@@ -1,0 +1,28 @@
+name: Windows client build
+
+on:
+  push:
+    branches: [ windows-port ]
+  pull_request:
+    branches: [ windows-port ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build Windows client
+        run: dotnet build windows/TVFongMi.Windows.csproj --configuration Release --no-restore
+        continue-on-error: true
+      - name: Publish Windows client
+        run: dotnet publish windows/TVFongMi.Windows.csproj --configuration Release --self-contained true -r win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --output artifacts/TVFongMi-Windows
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: TVFongMi-Windows
+          path: artifacts/TVFongMi-Windows
+          if-no-files-found: ignore
