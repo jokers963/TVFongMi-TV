@@ -14,7 +14,13 @@ public sealed class SourceImporter
     public async Task<IReadOnlyList<SourceConfig>> ImportFromUrlAsync(string url, CancellationToken cancellationToken = default)
     {
         if (!SourceUrlValidator.IsValid(url)) throw new ArgumentException("仅支持有效的 HTTP/HTTPS 地址。", nameof(url));
-        using var response = await _httpClient.GetAsync(url, cancellationToken);
+        // Some Android clients publish a sibling .md5 checksum next to the
+        // actual JavaScript source. Accepting the checksum URL is convenient
+        // for users copying a source link from those clients.
+        var sourceUrl = url.EndsWith(".md5", StringComparison.OrdinalIgnoreCase)
+            ? url[..^4]
+            : url;
+        using var response = await _httpClient.GetAsync(sourceUrl, cancellationToken);
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadAsStringAsync(cancellationToken);
         return Parse(json);
