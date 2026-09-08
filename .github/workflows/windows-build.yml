@@ -19,7 +19,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: Restore
-        run: dotnet restore windows/TVFongMi.Windows.csproj
+        run: dotnet restore windows/TVFongMi.Windows.csproj -r win-x64
       - name: Build Windows client
         run: dotnet build windows/TVFongMi.Windows.csproj --configuration Release --no-restore
       - name: Publish Windows client
