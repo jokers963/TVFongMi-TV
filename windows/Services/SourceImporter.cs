@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using TVFongMi.Windows.Models;
 
 namespace TVFongMi.Windows.Services;
@@ -28,8 +29,25 @@ public sealed class SourceImporter
 
     private static IReadOnlyList<SourceConfig> Parse(string json)
     {
-        var result = JsonSerializer.Deserialize<List<SourceConfig>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        if (result is null) throw new JsonException("影视源配置不是有效的 JSON 数组。");
-        return result.Where(x => !string.IsNullOrWhiteSpace(x.Name) && SourceUrlValidator.IsValid(x.Url)).ToList();
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        try
+        {
+            var result = JsonSerializer.Deserialize<List<SourceConfig>>(json, options);
+            if (result is not null && result.Count > 0)
+                return result.Where(IsUsable).ToList();
+        }
+        catch (JsonException)
+        {
+            // CatVod/TVBox configs in the wild are not always strict JSON.
+        }
+
+        var sites = CatVodConfigParser.ParseSitesLenient(json);
+        if (sites.Count > 0)
+            return sites.Select(x => new SourceConfig { Name = x.Name, Url = x.Api }).Where(IsUsable).ToList();
+
+        throw new JsonException("无法识别影视源格式。请导入源列表 JSON，或包含 api/url 字段的 CatVod 配置。");
     }
+
+    private static bool IsUsable(SourceConfig x) =>
+        !string.IsNullOrWhiteSpace(x.Name) && SourceUrlValidator.IsValid(x.Url);
 }
