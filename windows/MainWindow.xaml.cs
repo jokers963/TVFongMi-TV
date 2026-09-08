@@ -1,8 +1,8 @@
-using System.Windows; using Microsoft.Win32; using TVFongMi.Windows.Services;
+using System.Windows; using System.Windows.Controls; using Microsoft.Win32; using TVFongMi.Windows.Models; using TVFongMi.Windows.Services;
 namespace TVFongMi.Windows;
 public partial class MainWindow : Window
 {
- private readonly SourceCatalog _catalog=new(); private readonly SourceImporter _importer=new(); private readonly SourceHealthChecker _healthChecker=new(); private readonly BackupService _backup=new();
+ private readonly SourceCatalog _catalog=new(); private readonly SourceImporter _importer=new(); private readonly SourceHealthChecker _healthChecker=new(); private readonly BackupService _backup=new(); private readonly CatVodHttpClient _api=new();
  public MainWindow(){InitializeComponent();RefreshSources();}
  private void RefreshSources(){SourceList.ItemsSource=null;SourceList.ItemsSource=_catalog.Sources;StatusText.Text=_catalog.Sources.Count==0?"尚未导入影视源":$"已加载 {_catalog.Sources.Count} 个影视源";}
  private async void CheckSources_Click(object sender,RoutedEventArgs e){if(_catalog.Sources.Count==0){MessageBox.Show("请先导入影视源。","提示");return;}try{var r=await _healthChecker.CheckAllAsync(_catalog.Sources);MessageBox.Show($"可访问 {r.Count(x=>x.IsReachable)}/{r.Count} 个影视源。","检查完成");}catch(Exception ex){MessageBox.Show(ex.Message,"检查失败");}}
@@ -10,4 +10,5 @@ public partial class MainWindow : Window
  private async void Restore_Click(object sender,RoutedEventArgs e){var d=new OpenFileDialog{Filter="TVFongMi 备份|*.json"};if(d.ShowDialog()!=true)return;try{await _backup.ImportAsync(d.FileName);RefreshSources();MessageBox.Show("配置恢复完成，部分设置将在重启后生效。","完成");}catch(Exception ex){MessageBox.Show(ex.Message,"恢复失败");}}
  private async void ImportUrl_Click(object sender,RoutedEventArgs e){var d=new UrlDialog();if(d.ShowDialog()!=true)return;try{var r=_catalog.Merge(await _importer.ImportFromUrlAsync(d.Url));RefreshSources();MessageBox.Show($"导入 {r.ImportedCount} 个影视源。","导入完成");}catch(Exception ex){MessageBox.Show(ex.Message,"导入失败");}}
  private async void ImportFile_Click(object sender,RoutedEventArgs e){var d=new OpenFileDialog{Filter="JSON 文件|*.json|所有文件|*.*"};if(d.ShowDialog()!=true)return;try{var r=_catalog.Merge(await _importer.ImportFromFileAsync(d.FileName));RefreshSources();MessageBox.Show($"导入 {r.ImportedCount} 个影视源。","导入完成");}catch(Exception ex){MessageBox.Show(ex.Message,"导入失败");}}
+ private async void SourceList_SelectionChanged(object sender, SelectionChangedEventArgs e){if(SourceList.SelectedItem is not SourceConfig source)return;try{StatusText.Text=$"正在加载：{source.Name}";using var json=await _api.GetJsonAsync(source.Url);VideoList.ItemsSource=CatVodHttpClient.ReadVideoItems(json.RootElement);StatusText.Text=$"{source.Name}：已加载 {VideoList.Items.Count} 个视频";}catch(Exception ex){StatusText.Text=$"加载失败：{ex.Message}";}}
 }
