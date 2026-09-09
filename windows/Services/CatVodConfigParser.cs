@@ -17,9 +17,9 @@ public static class CatVodConfigParser
         {
             if (item.ValueKind != JsonValueKind.Object) continue;
             var api = ReadString(item, "api", "url", "ext");
-            var name = ReadString(item, "name", "title") ?? api;
             if (string.IsNullOrWhiteSpace(api)) continue;
-            result.Add(new CatVodSite { Key = ReadString(item, "key", "id") ?? name, Name = name ?? "未命名源", Api = api, Type = ReadString(item, "type", "type_name") ?? "", Searchable = ReadBool(item, "searchable", "search", true) });
+            var name = ReadString(item, "name", "title") ?? api;
+            result.Add(new CatVodSite { Key = ReadString(item, "key", "id") ?? name, Name = name, Api = api, Type = ReadString(item, "type", "type_name") ?? "", Searchable = ReadBool(item, "searchable", "search", true) });
         }
         return result;
     }
