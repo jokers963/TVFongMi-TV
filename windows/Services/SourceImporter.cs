@@ -47,11 +47,21 @@ public sealed class SourceImporter
             // CatVod/TVBox configs in the wild are not always strict JSON.
         }
 
+        var strictSites = TryParseCatVod(json);
+        if (strictSites.Count > 0)
+            return strictSites.Select(x => new SourceConfig { Name = x.Name, Url = x.Api }).Where(IsUsable).ToList();
+
         var sites = CatVodConfigParser.ParseSitesLenient(json);
         if (sites.Count > 0)
             return sites.Select(x => new SourceConfig { Name = x.Name, Url = x.Api }).Where(IsUsable).ToList();
 
         throw new JsonException("无法识别影视源格式。请导入源列表 JSON，或包含 api/url 字段的 CatVod 配置。");
+    }
+
+    private static IReadOnlyList<CatVodSite> TryParseCatVod(string json)
+    {
+        try { return CatVodConfigParser.ParseSites(json); }
+        catch (JsonException) { return Array.Empty<CatVodSite>(); }
     }
 
     private static bool IsUsable(SourceConfig x) =>
