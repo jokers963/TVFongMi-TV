@@ -8,3 +8,7 @@
 lib-*.aar
 /Release
 /docs
+# Local .NET CLI/build state
+/appdata
+/dotnet-home
+/nuget-packages
