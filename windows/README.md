@@ -30,4 +30,8 @@ dotnet publish windows/TVFongMi.Windows.csproj -p:PublishProfile=win-x64
 
 播放视频需要安装 mpv，并将 mpv.exe 放入 PATH 或程序目录。
 
+## 从 GitHub 下载 Windows 版本
+
+推送 `windows-port` 分支后，GitHub Actions 会自动构建。打开仓库的 **Actions**，进入最新的 **Windows client build**，在页面底部下载 `TVFongMi-Windows` artifact，解压后运行 `TVFongMi.Windows.exe`。
+
 影视内容来源由用户自行配置；客户端不内置或提供未经授权的内容来源。项目保留 GPLv3 许可证和原作者声明。
