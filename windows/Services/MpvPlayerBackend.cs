@@ -12,7 +12,8 @@ public sealed class MpvPlayerBackend : IPlayerBackend
         info.ArgumentList.Add(uri.ToString());
         if (!string.IsNullOrWhiteSpace(request.Title)) { info.ArgumentList.Add("--force-media-title"); info.ArgumentList.Add(request.Title); }
         foreach (var header in request.Headers) { info.ArgumentList.Add("--http-header-fields=" + header.Key + ": " + header.Value); }
-        _ = Process.Start(info) ?? throw new InvalidOperationException("无法启动 mpv。");
+        try { _ = Process.Start(info) ?? throw new InvalidOperationException("无法启动 mpv。"); }
+        catch (System.ComponentModel.Win32Exception ex) { throw new InvalidOperationException($"无法启动播放器：{_executable}。请安装 mpv，或将 mpv.exe 放到程序目录。", ex); }
         return Task.CompletedTask;
     }
 }

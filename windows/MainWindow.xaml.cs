@@ -2,8 +2,8 @@ using System.Windows; using System.Windows.Controls; using Microsoft.Win32; usin
 namespace TVFongMi.Windows;
 public partial class MainWindow : Window
 {
- private readonly SourceCatalog _catalog=new(); private readonly SourceImporter _importer=new(); private readonly SourceHealthChecker _healthChecker=new(); private readonly BackupService _backup=new(); private readonly CatVodHttpClient _api=new(); private readonly PlaybackService _playback=new(new MpvPlayerBackend()); private IReadOnlyList<VideoItem> _allVideos=Array.Empty<VideoItem>(); private string _category="";
- public MainWindow(){InitializeComponent();RefreshSources();}
+ private readonly SourceCatalog _catalog=new(); private readonly SourceImporter _importer=new(); private readonly SourceHealthChecker _healthChecker=new(); private readonly BackupService _backup=new(); private readonly CatVodHttpClient _api=new(); private readonly PlaybackService _playback; private IReadOnlyList<VideoItem> _allVideos=Array.Empty<VideoItem>(); private string _category="";
+ public MainWindow(){InitializeComponent();_playback=new PlaybackService(new MpvPlayerBackend(PlayerLocator.FindMpv() ?? "mpv.exe"));RefreshSources();}
  private void RefreshSources(){SourceList.ItemsSource=null;SourceList.ItemsSource=_catalog.Sources;StatusText.Text=_catalog.Sources.Count==0?"尚未导入影视源":$"已加载 {_catalog.Sources.Count} 个影视源";}
  private async void CheckSources_Click(object sender,RoutedEventArgs e){if(_catalog.Sources.Count==0){MessageBox.Show("请先导入影视源。","提示");return;}try{var r=await _healthChecker.CheckAllAsync(_catalog.Sources);MessageBox.Show($"可访问 {r.Count(x=>x.IsReachable)}/{r.Count} 个影视源。","检查完成");}catch(Exception ex){MessageBox.Show(ex.Message,"检查失败");}}
  private async void Backup_Click(object sender,RoutedEventArgs e){var d=new SaveFileDialog{Filter="TVFongMi 备份|*.json",FileName="tvfongmi-backup.json"};if(d.ShowDialog()!=true)return;try{await _backup.ExportAsync(d.FileName);MessageBox.Show("配置备份完成。","完成");}catch(Exception ex){MessageBox.Show(ex.Message,"备份失败");}}
